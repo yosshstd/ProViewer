@@ -7,7 +7,7 @@ import hashlib  # for stable unique keys per viewer
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="Protein Structure Viewer",
+    page_title="ProViewer",
     page_icon="🧬",
     layout="centered",
 )
@@ -18,7 +18,7 @@ HIDE_ST_STYLE = """
             /* Main content area styling */
             .block-container {
                 max-width: 1200px;
-                padding-top: 1rem;
+                padding-top: 0rem;
                 padding-right: 3rem;
                 padding-left: 3rem;
                 padding-bottom: 1rem;
@@ -30,9 +30,6 @@ HIDE_ST_STYLE = """
             #MainMenu { visibility: hidden; height: 0%; }
             header { visibility: hidden; height: 0%; }
             footer { visibility: hidden; height: 0%; }
-
-            /* Subtle spacing helper */
-            .small-gap { margin-top: .25rem; }
             </style>
 """
 st.markdown(HIDE_ST_STYLE, unsafe_allow_html=True)
@@ -116,7 +113,7 @@ def fold_protein(sequence: str) -> str | None:
         return None
 
 # --- App Title ---
-st.title("🧬 Protein Structure Viewer")
+st.title("🧬 ProViewer")
 st.caption("Explore 3D structures of proteins via prediction, upload, or AlphaFold DB.")
 
 # --- Tab Layout ---
@@ -150,7 +147,6 @@ with tab_predict:
 
     # Show prediction result and controls if present
     if "predicted_content" in st.session_state:
-        st.markdown("---")
         pdb_to_show = st.session_state.predicted_content
 
         col1, col2 = st.columns([1, 4])
@@ -165,7 +161,6 @@ with tab_predict:
                 mime="chemical/x-pdb",
                 key="download_pdb_predict"
             )
-            st.markdown("<div class='small-gap'></div>", unsafe_allow_html=True)
             if st.button(
                 "🧹 Clear",
                 key="clear_predict",
@@ -198,13 +193,11 @@ with tab_upload:
         content = st.session_state.get("uploaded_content")
         fmt = st.session_state.get("uploaded_format")
 
-        st.markdown("---")
         col1, col2 = st.columns([1, 4])
         with col1:
             avg = get_average_plddt(content, fmt)
             if avg is not None:
                 st.metric("Avg. pLDDT", f"{avg:.2f}")
-            st.markdown("<div class='small-gap'></div>", unsafe_allow_html=True)
             if st.button(
                 "🧹 Clear",
                 key="clear_upload",
@@ -250,8 +243,6 @@ with tab_fetch:
         content = st.session_state.af_structure["content"]
         id_ = st.session_state.af_structure["id"]
 
-        st.markdown("---")
-        st.subheader(f"Showing AlphaFold structure for {id_}")
         col1, col2 = st.columns([1, 4])
         with col1:
             avg = get_average_plddt(content, 'cif')
@@ -264,7 +255,6 @@ with tab_fetch:
                 mime="chemical/x-mmcif",
                 key=f"download_cif_afdb_{id_}"
             )
-            st.markdown("<div class='small-gap'></div>", unsafe_allow_html=True)
             if st.button(
                 "🧹 Clear",
                 key="clear_afdb",

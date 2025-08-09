@@ -14,9 +14,9 @@ The application features a clean, tab-based interface for three main functionali
 - **📁 Upload**: Upload a `.pdb` or `.cif` file from your computer to view your own protein structures.
 - **📦 AlphaFold DB**: Enter a UniProt accession ID to fetch and visualize the corresponding structure from the AlphaFold Protein Structure Database.
 
-<p align="center">
+<!-- <p align="center">
   <img src="https://i.imgur.com/vHq8YyH.png" alt="App Screenshot" width="85%">
-</p>
+</p> -->
 
 ## 📦 Installation & Usage
 To run this application on your local machine, please follow these steps.
