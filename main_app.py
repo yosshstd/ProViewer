@@ -114,7 +114,6 @@ def fold_protein(sequence: str) -> str | None:
 
 # --- App Title ---
 st.title("🧬 ProViewer")
-st.caption("Explore 3D structures of proteins via prediction, upload, or AlphaFold DB.")
 
 # --- Tab Layout ---
 tab_predict, tab_upload, tab_fetch = st.tabs(["🔮 Predict", "📁 Upload", "📦 AlphaFold DB"])
@@ -123,19 +122,24 @@ tab_predict, tab_upload, tab_fetch = st.tabs(["🔮 Predict", "📁 Upload", "�
 with tab_predict:
     st.subheader("Predict Protein Structure from Sequence")
 
-    # Input form for structure prediction
+    # Place the input field and submit button side-by-side
     with st.form("predict_form"):
-        sequence = st.text_area(
-            "Amino Acid Sequence",
-            value=DEFAULT_SEQ,
-            height=80,
-            key="predict_sequence"  # keep input across reruns
-        ).strip()
-        st.caption(f"Length: {len(sequence)} / {MAX_SEQUENCE_LENGTH} characters")
-        submit_predict = st.form_submit_button("Predict Structure")
+        # Changed the column ratio to push the button further to the right
+        col_text, col_btn = st.columns([8, 1], vertical_alignment="top")
+        with col_text:
+            sequence = st.text_area(
+                "Amino Acid Sequence",
+                value=DEFAULT_SEQ,
+                height=80,
+                key="predict_sequence"  # keep input across reruns
+            ).strip()
+            st.caption(f"Length: {len(sequence)} / {MAX_SEQUENCE_LENGTH} characters")
+        with col_btn:
+            # Add vertical space to align with the text area label
+            st.markdown("<div style='height: 1.8rem;'></div>", unsafe_allow_html=True)
+            submit_predict = st.form_submit_button("Predict")
 
     if submit_predict:
-        # Validate input
         if not sequence:
             st.warning("Please enter a sequence.")
         elif len(sequence) > MAX_SEQUENCE_LENGTH:
@@ -145,10 +149,8 @@ with tab_predict:
             if pdb_content:
                 st.session_state.predicted_content = pdb_content
 
-    # Show prediction result and controls if present
     if "predicted_content" in st.session_state:
         pdb_to_show = st.session_state.predicted_content
-
         col1, col2 = st.columns([1, 4])
         with col1:
             avg_plddt = get_average_plddt(pdb_to_show, 'pdb')
@@ -161,14 +163,9 @@ with tab_predict:
                 mime="chemical/x-pdb",
                 key="download_pdb_predict"
             )
-            if st.button(
-                "🧹 Clear",
-                key="clear_predict",
-                help="Clear the predicted structure view (input is kept).",
-                disabled=False
-            ):
-                if "predicted_content" in st.session_state:
-                    del st.session_state.predicted_content
+            if st.button("🧹 Clear", key="clear_predict",
+                         help="Clear the predicted structure view (input is kept)."):
+                st.session_state.pop("predicted_content", None)
                 do_rerun()
         with col2:
             st_molstar_content(
@@ -221,24 +218,34 @@ with tab_upload:
 # --- AlphaFold DB Tab ---
 with tab_fetch:
     st.subheader("Fetch Structure from AlphaFold DB")
-    uniprot_id = st.text_input("Enter UniProt ID", "Q8W3K0", key="uniprot_id").strip()
 
-    # Fetch structure from AlphaFold DB
-    if st.button("Fetch Structure", key="fetch_button"):
-        if uniprot_id:
-            url = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v4.cif"
-            try:
-                r = requests.get(url, timeout=30)
-                r.raise_for_status()
-                st.session_state.af_structure = {
-                    "content": r.content.decode(),
-                    "id": uniprot_id
-                }
-            except requests.RequestException:
-                st.error(f"Failed to fetch structure for {uniprot_id}. Please check the UniProt ID and try again.")
-                # Keep previous af_structure if any
+    # Use a form to allow submission with the Enter key
+    with st.form("afdb_form"):
+        # Changed the column ratio to push the button further to the right
+        col_input, col_btn = st.columns([8, 1], vertical_alignment="top")
+        with col_input:
+            uniprot_id = st.text_input(
+                "Enter UniProt ID",
+                "Q8W3K0",
+                key="uniprot_id"
+            ).strip()
+        with col_btn:
+            # Add vertical space to align with the text input label
+            st.markdown("<div style='height: 1.8rem;'></div>", unsafe_allow_html=True)
+            submit_fetch = st.form_submit_button("Fetch")
 
-    # Show fetched structure and controls if present
+    if submit_fetch and uniprot_id:
+        url = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v4.cif"
+        try:
+            r = requests.get(url, timeout=30)
+            r.raise_for_status()
+            st.session_state.af_structure = {
+                "content": r.content.decode(),
+                "id": uniprot_id
+            }
+        except requests.RequestException:
+            st.error(f"Failed to fetch structure for {uniprot_id}. Please check the UniProt ID and try again.")
+
     if "af_structure" in st.session_state:
         content = st.session_state.af_structure["content"]
         id_ = st.session_state.af_structure["id"]
@@ -255,14 +262,9 @@ with tab_fetch:
                 mime="chemical/x-mmcif",
                 key=f"download_cif_afdb_{id_}"
             )
-            if st.button(
-                "🧹 Clear",
-                key="clear_afdb",
-                help="Clear the fetched AlphaFold structure view (UniProt ID input is kept).",
-                disabled=False
-            ):
-                if "af_structure" in st.session_state:
-                    del st.session_state.af_structure
+            if st.button("🧹 Clear", key="clear_afdb",
+                         help="Clear the fetched AlphaFold structure view (UniProt ID input is kept)."):
+                st.session_state.pop("af_structure", None)
                 do_rerun()
         with col2:
             st_molstar_content(
