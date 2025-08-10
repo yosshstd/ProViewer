@@ -21,7 +21,7 @@ HIDE_ST_STYLE = """
                 padding-top: 0rem;
                 padding-right: 3rem;
                 padding-left: 3rem;
-                padding-bottom: 1rem;
+                padding-bottom: 6rem;
             }
 
             /* Hide Streamlit's default toolbar, menu, header, and footer */
